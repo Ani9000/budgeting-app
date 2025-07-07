@@ -1,48 +1,44 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, Button, FlatList, StyleSheet } from 'react-native';
-import { initDB } from '../../db/database';
-import { addExpense, getExpenses } from '../../db/expenses';
+import React, { useState, useCallback } from 'react';
+import { SafeAreaView, FlatList, Text, StyleSheet } from 'react-native';
+import { getExpenses } from '../../db/expenses';
+import { useFocusEffect } from '@react-navigation/native';
 
 export default function HomeScreen() {
   const [expenses, setExpenses] = useState<any[]>([]);
-
-  useEffect(() => {
-    initDB();
-    fetchExpenses();
-  }, []);
 
   const fetchExpenses = async () => {
     const data = await getExpenses();
     setExpenses(data);
   };
 
-  const handleAdd = async () => {
-    const today = new Date().toISOString().split('T')[0];
-    await addExpense(12.99, 'Food', 'Test Shawarma', 'Credit Card', today);
-    await fetchExpenses();
-  };
+  useFocusEffect(
+    useCallback(() => {
+      fetchExpenses();
+    }, [])
+  );
 
   return (
-    <View style={styles.container}>
-      <Button title="Add Test Expense" onPress={handleAdd} />
+    <SafeAreaView style={styles.container}>
       <FlatList
         data={expenses}
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
-          <Text style={styles.item}>{`${item.date} | ${item.category} | $${item.amount}`}</Text>
+          <Text style={styles.item}>
+            {`${item.date} | ${item.category} | ${item.description} | ${item.payment_method} | $${item.amount}`}
+          </Text>
         )}
       />
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    paddingTop: 60,
+    flex: 1,
     padding: 24,
   },
   item: {
-    padding: 8,
+    marginBottom: 12,
     fontSize: 16,
   },
 });
